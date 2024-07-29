@@ -1,67 +1,101 @@
-import { Alert, Image, StyleSheet, Text, View } from 'react-native';
-import OutlineButton from '../UI/OutlineButton';
-import { Colors } from '../../constants/colors';
+import { useEffect, useState } from 'react';
+import { Alert, View, StyleSheet, Image, Text } from 'react-native';
 import {
   getCurrentPositionAsync,
-  PermissionStatus,
   useForegroundPermissions,
+  PermissionStatus,
 } from 'expo-location';
-import { useState } from 'react';
-import { getMapPreview } from '../../util/location';
-import { useNavigation } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  useIsFocused,
+} from '@react-navigation/native';
 
-function LocationPicker() {
-  const navigation = useNavigation();
+import { Colors } from '../../constants/colors';
+import OutlineButton from '../UI/OutlineButton';
+import { getAddress, getMapPreview } from '../../util/location';
+
+function LocationPicker({ onPickLocation }) {
   const [pickedLocation, setPickedLocation] = useState();
+  const isFocused = useIsFocused();
+
+  const navigation = useNavigation();
+  const route = useRoute();
+
   const [locationPermissionInformation, requestPermission] =
     useForegroundPermissions();
+
+  useEffect(() => {
+    if (isFocused && route.params) {
+      const mapPickedLocation = {
+        lat: route.params.pickedLat,
+        lng: route.params.pickedLng,
+      };
+      setPickedLocation(mapPickedLocation);
+    }
+  }, [route, isFocused]);
+
+  useEffect(() => {
+    async function handleLocation() {
+      if (pickedLocation) {
+        const address = await getAddress(
+          pickedLocation.lat,
+          pickedLocation.lng
+        );
+        onPickLocation({ ...pickedLocation, address: address });
+      }
+    }
+
+    handleLocation();
+  }, [pickedLocation, onPickLocation]);
 
   async function verifyPermissions() {
     if (
       locationPermissionInformation.status === PermissionStatus.UNDETERMINED
     ) {
       const permissionResponse = await requestPermission();
+
       return permissionResponse.granted;
     }
 
     if (locationPermissionInformation.status === PermissionStatus.DENIED) {
       Alert.alert(
-        'Location permission',
-        'The application will stop because one of our core functionalities has no permission.'
+        'Insufficient Permissions!',
+        'You need to grant location permissions to use this app.'
       );
       return false;
     }
 
-    return locationPermissionInformation.status === PermissionStatus.GRANTED;
+    return true;
   }
 
   async function getLocationHandler() {
     const hasPermission = await verifyPermissions();
+
     if (!hasPermission) {
       return;
     }
-    try {
-      const location = await getCurrentPositionAsync();
-      setPickedLocation({
-        lat: location.coords.latitude,
-        lng: location.coords.longitude,
-      });
-    } catch (error) {
-      console.log(error);
-    }
+
+    const location = await getCurrentPositionAsync();
+    setPickedLocation({
+      lat: location.coords.latitude,
+      lng: location.coords.longitude,
+    });
   }
 
   function pickOnMapHandler() {
     navigation.navigate('Map');
   }
 
-  let locationPreview = <Text>No Location picked yet</Text>;
+  let locationPreview = <Text>No location picked yet.</Text>;
 
   if (pickedLocation) {
     locationPreview = (
       <Image
         style={styles.image}
-        source={{ uri: getMapPreview(pickedLocation) }}
+        source={{
+          uri: getMapPreview(pickedLocation.lat, pickedLocation.lng),
+        }}
       />
     );
   }
@@ -70,10 +104,10 @@ function LocationPicker() {
     <View>
       <View style={styles.mapPreview}>{locationPreview}</View>
       <View style={styles.actions}>
-        <OutlineButton onPress={getLocationHandler} icon={'location'}>
+        <OutlineButton icon="location" onPress={getLocationHandler}>
           Locate User
         </OutlineButton>
-        <OutlineButton onPress={pickOnMapHandler} icon={'map'}>
+        <OutlineButton icon="map" onPress={pickOnMapHandler}>
           Pick on Map
         </OutlineButton>
       </View>
@@ -90,7 +124,7 @@ const styles = StyleSheet.create({
     marginVertical: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.primary400,
+    backgroundColor: Colors.primary100,
     borderRadius: 4,
     overflow: 'hidden',
   },
@@ -102,5 +136,6 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: '100%',
+    // borderRadius: 4
   },
 });

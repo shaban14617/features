@@ -1,9 +1,9 @@
+import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { StatusBar } from 'expo-status-bar';
-import { Text, View } from 'react-native';
+
 import AllPlaces from './screens/AllPlaces';
-import AddPlaces from './screens/AddPlaces';
+import AddPlace from './screens/AddPlace';
 import IconButton from './components/UI/IconButton';
 import { Colors } from './constants/colors';
 import Map from './screens/Map';
@@ -20,29 +20,28 @@ export default function App() {
             headerStyle: { backgroundColor: Colors.primary500 },
             headerTintColor: Colors.gray700,
             contentStyle: { backgroundColor: Colors.gray700 },
-            headerBackTitle: 'Back',
           }}
         >
           <Stack.Screen
             name="AllPlaces"
             component={AllPlaces}
             options={({ navigation }) => ({
-              headerTitle: 'Your Favorite Places',
+              title: 'Your Favorite Places',
               headerRight: ({ tintColor }) => (
                 <IconButton
-                  icon={'add'}
-                  color={tintColor}
+                  icon="add"
                   size={24}
-                  onPress={() => navigation.navigate('AddPlaces')}
+                  color={tintColor}
+                  onPress={() => navigation.navigate('AddPlace')}
                 />
               ),
             })}
           />
           <Stack.Screen
-            name="AddPlaces"
-            component={AddPlaces}
+            name="AddPlace"
+            component={AddPlace}
             options={{
-              headerTitle: 'Add Your Place',
+              title: 'Add a new Place',
             }}
           />
           <Stack.Screen name="Map" component={Map} />
