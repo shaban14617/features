@@ -6,9 +6,9 @@ function PlaceItem({ place, onSelect }) {
   return (
     <Pressable
       style={({ pressed }) => [styles.item, pressed && styles.pressed]}
-      onPress={onSelect}
+      onPress={onSelect.bind(this, place.id)}
     >
-      <Image style={styles.image} source={{ uri: place.imageUri }} />
+      <Image source={{ uri: place.imageUri }} style={styles.image} />
       <View style={styles.info}>
         <Text style={styles.title}>{place.title}</Text>
         <Text style={styles.address}>{place.address}</Text>
@@ -23,10 +23,11 @@ const styles = StyleSheet.create({
   item: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    borderRadius: 6,
-    marginVertical: 12,
-    backgroundColor: Colors.primary500,
-    elevation: 2,
+    paddingHorizontal: 12,
+    backgroundColor: Colors.primary800,
+    paddingVertical: 8,
+    margin: 4,
+    borderRadius: 4,
     shadowColor: 'black',
     shadowOpacity: 0.15,
     shadowOffset: { width: 1, height: 1 },
@@ -48,10 +49,13 @@ const styles = StyleSheet.create({
   title: {
     fontWeight: 'bold',
     fontSize: 18,
-    color: Colors.gray700,
+    textAlign: 'center',
+    marginBottom: 5,
+    color: 'white',
   },
   address: {
+    margin: 7,
     fontSize: 12,
-    color: Colors.gray700,
+    color: 'white',
   },
 });
